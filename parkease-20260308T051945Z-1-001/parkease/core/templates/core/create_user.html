@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+{% block title %}Create User{% endblock %}
+{% block page_title %}Create User{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">👤 Create New User</h1>
+</div>
+
+<div class="card" style="max-width:680px;">
+  <div class="card-header"><span class="card-title">User Details</span></div>
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Username <span class="required">*</span></label>
+          <input type="text" name="username" class="form-control" placeholder="login username"
+                 value="{{ form.username.value|default:'' }}">
+          {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role <span class="required">*</span></label>
+          <select name="role" class="form-select">
+            {% for val, label in form.fields.role.choices %}
+            <option value="{{ val }}" {% if form.role.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if form.role.errors %}<div class="form-error">{{ form.role.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">First Name <span class="required">*</span></label>
+          <input type="text" name="first_name" class="form-control" placeholder="First name"
+                 value="{{ form.first_name.value|default:'' }}">
+          {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name <span class="required">*</span></label>
+          <input type="text" name="last_name" class="form-control" placeholder="Last name"
+                 value="{{ form.last_name.value|default:'' }}">
+          {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" placeholder="user@email.com"
+                 value="{{ form.email.value|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" placeholder="0712345678"
+                 value="{{ form.phone.value|default:'' }}">
+          {% if form.phone.errors %}<div class="form-error">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password <span class="required">*</span></label>
+          <input type="password" name="password" class="form-control" placeholder="Password">
+          {% if form.password.errors %}<div class="form-error">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password <span class="required">*</span></label>
+          <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password">
+          {% if form.confirm_password.errors %}<div class="form-error">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+      <hr class="divider">
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary btn-lg">👤 Create User</button>
+        <a href="{% url 'manage_users' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

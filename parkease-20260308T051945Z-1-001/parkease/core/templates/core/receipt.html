@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+{% block title %}Receipt {{ receipt.receipt_number }}{% endblock %}
+{% block page_title %}Parking Receipt{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-secondary btn-sm no-print">🖨️ Print</button>
+<a href="{% url 'active_vehicles' %}" class="btn btn-primary btn-sm no-print">← Back to Active Vehicles</a>
+{% endblock %}
+
+{% block content %}
+<div class="receipt">
+  <div class="receipt-header">
+    <div style="font-size:2rem;margin-bottom:8px;">🅿️</div>
+    <h2>PARKVILLE PARKING RECEIPT</h2>
+    <div class="receipt-number">{{ receipt.receipt_number }}</div>
+    <div style="font-size:0.78rem;margin-top:8px;opacity:0.8;">Issued: {{ receipt.issued_at|date:"d/m/Y H:i" }}</div>
+  </div>
+
+  <div class="receipt-body">
+    <h3 style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Vehicle Details</h3>
+    <div class="receipt-row"><span class="receipt-row-label">Number Plate</span><span class="receipt-row-value" style="font-family:'Syne',sans-serif;font-size:1.1rem;color:var(--gold);">{{ vehicle.number_plate }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Vehicle Model</span><span class="receipt-row-value">{{ vehicle.vehicle_model }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Color</span><span class="receipt-row-value">{{ vehicle.vehicle_color }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Type</span><span class="receipt-row-value">{{ vehicle.get_vehicle_type_display }}</span></div>
+
+    <hr class="divider">
+    <h3 style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Driver Details</h3>
+    <div class="receipt-row"><span class="receipt-row-label">Driver Name</span><span class="receipt-row-value">{{ vehicle.driver_name }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Phone</span><span class="receipt-row-value">{{ vehicle.phone_number }}</span></div>
+    {% if vehicle.nin_number %}
+    <div class="receipt-row"><span class="receipt-row-label">NIN</span><span class="receipt-row-value">{{ vehicle.nin_number }}</span></div>
+    {% endif %}
+
+    <hr class="divider">
+    <h3 style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Parking Details</h3>
+    <div class="receipt-row"><span class="receipt-row-label">Arrival</span><span class="receipt-row-value">{{ vehicle.arrival_time|date:"d/m/Y H:i" }}</span></div>
+    {% if vehicle.departure_time %}
+    <div class="receipt-row"><span class="receipt-row-label">Departure</span><span class="receipt-row-value">{{ vehicle.departure_time|date:"d/m/Y H:i" }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Duration</span><span class="receipt-row-value">{{ vehicle.duration_hours|floatformat:1 }} hours</span></div>
+    {% endif %}
+    <div class="receipt-row"><span class="receipt-row-label">Rate Type</span><span class="receipt-row-value">{{ vehicle.parking_rate_type|title }}</span></div>
+
+    {% if receipt.signed_out_at %}
+    <hr class="divider">
+    <h3 style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Sign-Out Details</h3>
+    <div class="receipt-row"><span class="receipt-row-label">Receiver Name</span><span class="receipt-row-value">{{ receipt.receiver_name }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Receiver Phone</span><span class="receipt-row-value">{{ receipt.receiver_phone }}</span></div>
+    <div class="receipt-row"><span class="receipt-row-label">Gender</span><span class="receipt-row-value">{{ receipt.receiver_gender }}</span></div>
+    {% if receipt.receiver_nin %}<div class="receipt-row"><span class="receipt-row-label">NIN</span><span class="receipt-row-value">{{ receipt.receiver_nin }}</span></div>{% endif %}
+    <div class="receipt-row"><span class="receipt-row-label">Signed Out At</span><span class="receipt-row-value">{{ receipt.signed_out_at|date:"d/m/Y H:i" }}</span></div>
+    {% endif %}
+
+    <div class="receipt-total">
+      <div>
+        <div class="receipt-total-label">💰 Parking Fee</div>
+        {% if receipt.signed_out_at %}<div style="font-size:0.72rem;color:var(--text-muted);">Paid</div>{% else %}<div style="font-size:0.72rem;color:var(--text-muted);">Due on exit</div>{% endif %}
+      </div>
+      <div class="receipt-total-amount">UGX {{ vehicle.parking_fee|floatformat:0 }}</div>
+    </div>
+
+    {% if not receipt.signed_out_at %}
+    <div style="margin-top:20px;display:flex;gap:10px;">
+      <a href="{% url 'process_signout' receipt.pk %}" class="btn btn-success">🚪 Sign Out Now</a>
+      <a href="{% url 'active_vehicles' %}" class="btn btn-secondary">← Back</a>
+    </div>
+    {% else %}
+    <div style="text-align:center;margin-top:20px;padding:16px;background:rgba(16,217,138,0.06);border-radius:8px;border:1px solid rgba(16,217,138,0.15);">
+      <div style="color:var(--emerald);font-size:1.5rem;">✅</div>
+      <div style="font-size:0.85rem;color:var(--emerald);font-weight:600;margin-top:4px;">Vehicle Signed Out</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

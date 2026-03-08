@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ParkEase{% endblock %} — ParkEase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <a class="logo-mark" href="{% url 'dashboard' %}">
+        <div class="logo-icon">🅿️</div>
+        <div>
+          <span class="logo-text">ParkEase</span>
+          <span class="logo-sub">Parkville Management</span>
+        </div>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+
+      {% with role=request.user.profile.role %}
+      {% if role == 'attendant' or role == 'admin' %}
+      <span class="nav-section-label">Parking</span>
+      <a href="{% url 'register_vehicle' %}" class="nav-link {% if request.resolver_match.url_name == 'register_vehicle' %}active{% endif %}">
+        <span class="nav-icon">🚗</span> Register Vehicle
+      </a>
+      <a href="{% url 'active_vehicles' %}" class="nav-link {% if request.resolver_match.url_name == 'active_vehicles' %}active{% endif %}">
+        <span class="nav-icon">📋</span> Active Vehicles
+      </a>
+      <a href="{% url 'signout_vehicle' %}" class="nav-link {% if request.resolver_match.url_name == 'signout_vehicle' %}active{% endif %}">
+        <span class="nav-icon">🚪</span> Sign Out Vehicle
+      </a>
+      {% endif %}
+
+      {% if role == 'tyre_manager' or role == 'admin' %}
+      <span class="nav-section-label">Tyre Clinic</span>
+      <a href="{% url 'tyre_dashboard' %}" class="nav-link {% if 'tyre' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🔧</span> Tyre Dashboard
+      </a>
+      <a href="{% url 'tyre_service' %}" class="nav-link">
+        <span class="nav-icon">➕</span> New Service
+      </a>
+      <a href="{% url 'tyre_prices' %}" class="nav-link">
+        <span class="nav-icon">💰</span> Manage Prices
+      </a>
+      {% endif %}
+
+      {% if role == 'battery_manager' or role == 'admin' %}
+      <span class="nav-section-label">Battery Section</span>
+      <a href="{% url 'battery_dashboard' %}" class="nav-link {% if 'battery' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🔋</span> Battery Dashboard
+      </a>
+      <a href="{% url 'battery_transaction' %}" class="nav-link">
+        <span class="nav-icon">➕</span> New Transaction
+      </a>
+      <a href="{% url 'battery_prices' %}" class="nav-link">
+        <span class="nav-icon">💰</span> Manage Prices
+      </a>
+      {% endif %}
+
+      {% if role == 'admin' %}
+      <span class="nav-section-label">Administration</span>
+      <a href="{% url 'daily_report' %}" class="nav-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">📊</span> Daily Reports
+      </a>
+      <a href="{% url 'manage_users' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">👥</span> Manage Users
+      </a>
+      {% endif %}
+      {% endwith %}
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="user-role">{{ request.user.profile.get_role_display|default:"User" }}</div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-btn" title="Logout">⇥</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">{% block page_title %}ParkEase{% endblock %}</div>
+        <div class="topbar-meta" id="clock"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        {% block topbar_actions %}{% endblock %}
+      </div>
+    </header>
+
+    <div class="page-body fade-in">
+      {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+        {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ message }}
+      </div>
+      {% endfor %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleDateString('en-UG', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+}
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

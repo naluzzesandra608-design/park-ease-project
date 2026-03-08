@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+{% block title %}Register Vehicle{% endblock %}
+{% block page_title %}Register Vehicle{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🚗 Register Vehicle</h1>
+    <p class="page-subtitle">Record a new vehicle arrival at the parking facility.</p>
+  </div>
+  <a href="{% url 'active_vehicles' %}" class="btn btn-secondary">📋 View Active Vehicles</a>
+</div>
+
+<div class="card" style="max-width:800px;">
+  <div class="card-header">
+    <span class="card-title">Vehicle Registration Form</span>
+    <span class="badge badge-gold">Required fields marked *</span>
+  </div>
+  <div class="card-body">
+    <form method="post" novalidate id="reg-form">
+      {% csrf_token %}
+
+      <h3 style="font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;">Driver Information</h3>
+      <div class="form-grid" style="margin-bottom:24px;">
+        <div class="form-group">
+          <label class="form-label">Driver Name <span class="required">*</span></label>
+          <input type="text" name="driver_name" class="form-control" placeholder="e.g. John Doe"
+                 value="{{ form.driver_name.value|default:'' }}">
+          {% if form.driver_name.errors %}<div class="form-error">{{ form.driver_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number <span class="required">*</span></label>
+          <input type="text" name="phone_number" class="form-control" placeholder="e.g. 0712345678"
+                 value="{{ form.phone_number.value|default:'' }}">
+          {% if form.phone_number.errors %}<div class="form-error">{{ form.phone_number.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group" id="nin-group" style="display:none;">
+          <label class="form-label">NIN Number <span class="required" id="nin-req">*</span></label>
+          <input type="text" name="nin_number" class="form-control" placeholder="e.g. CM12345678901A"
+                 value="{{ form.nin_number.value|default:'' }}">
+          {% if form.nin_number.errors %}<div class="form-error">{{ form.nin_number.errors.0 }}</div>{% endif %}
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;">Required for Boda-boda riders</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <h3 style="font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;">Vehicle Information</h3>
+      <div class="form-grid" style="margin-bottom:24px;">
+        <div class="form-group">
+          <label class="form-label">Vehicle Type <span class="required">*</span></label>
+          <select name="vehicle_type" class="form-select" id="vehicle-type">
+            <option value="">-- Select Type --</option>
+            {% for val, label in form.fields.vehicle_type.choices %}
+            {% if val %}<option value="{{ val }}" {% if form.vehicle_type.value == val %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          {% if form.vehicle_type.errors %}<div class="form-error">{{ form.vehicle_type.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Number Plate <span class="required">*</span></label>
+          <input type="text" name="number_plate" class="form-control" placeholder="e.g. UAX12"
+                 value="{{ form.number_plate.value|default:'' }}" style="text-transform:uppercase;">
+          {% if form.number_plate.errors %}<div class="form-error">{{ form.number_plate.errors.0 }}</div>{% endif %}
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;">Must start with 'U', alphanumeric, max 5 chars</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle Model <span class="required">*</span></label>
+          <input type="text" name="vehicle_model" class="form-control" placeholder="e.g. Toyota Hiace"
+                 value="{{ form.vehicle_model.value|default:'' }}">
+          {% if form.vehicle_model.errors %}<div class="form-error">{{ form.vehicle_model.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle Color <span class="required">*</span></label>
+          <input type="text" name="vehicle_color" class="form-control" placeholder="e.g. White"
+                 value="{{ form.vehicle_color.value|default:'' }}">
+          {% if form.vehicle_color.errors %}<div class="form-error">{{ form.vehicle_color.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- Fee Preview -->
+      <div class="fee-box" id="fee-preview" style="display:none;">
+        <div>
+          <div class="fee-box-label">Estimated Parking Fee</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;" id="fee-type"></div>
+        </div>
+        <div class="fee-box-amount" id="fee-amount">UGX 0</div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary btn-lg">🚗 Register Vehicle & Issue Receipt</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const RATES = {
+  truck:        {day:5000, night:10000, short:2000},
+  personal_car: {day:3000, night:2000,  short:2000},
+  taxi:         {day:3000, night:2000,  short:2000},
+  coaster:      {day:4000, night:2000,  short:3000},
+  boda_boda:    {day:2000, night:2000,  short:1000},
+};
+
+const vehicleTypeEl = document.getElementById('vehicle-type');
+const ninGroup = document.getElementById('nin-group');
+const feePreview = document.getElementById('fee-preview');
+const feeAmount = document.getElementById('fee-amount');
+const feeType = document.getElementById('fee-type');
+const plateInput = document.querySelector('[name=number_plate]');
+
+vehicleTypeEl.addEventListener('change', function() {
+  const val = this.value;
+  ninGroup.style.display = val === 'boda_boda' ? 'block' : 'none';
+  updateFee();
+});
+
+function updateFee() {
+  const vtype = vehicleTypeEl.value;
+  if (!vtype || !RATES[vtype]) { feePreview.style.display='none'; return; }
+  const hour = new Date().getHours();
+  let rateKey, label;
+  // Assume short stay for preview; actual calc on server
+  rateKey = (hour >= 6 && hour <= 18) ? 'day' : 'night';
+  label = rateKey === 'day' ? 'Day rate (6AM–7PM)' : 'Night rate (7PM–6AM)';
+  feeAmount.textContent = 'UGX ' + RATES[vtype][rateKey].toLocaleString();
+  feeType.textContent = label + ' · <3 hrs: UGX ' + RATES[vtype]['short'].toLocaleString();
+  feePreview.style.display = 'flex';
+}
+
+// Auto-uppercase plate
+plateInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+
+// Show NIN if boda-boda was pre-selected (on form error reload)
+if (vehicleTypeEl.value === 'boda_boda') { ninGroup.style.display='block'; }
+updateFee();
+</script>
+{% endblock %}

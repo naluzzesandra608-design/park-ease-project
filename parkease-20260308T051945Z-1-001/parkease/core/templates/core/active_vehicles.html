@@ -1,0 +1,79 @@
+{% extends 'core/base.html' %}
+{% block title %}Active Vehicles{% endblock %}
+{% block page_title %}Active Vehicles{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">📋 Active Vehicles</h1>
+    <p class="page-subtitle">{{ vehicles.count }} vehicle{{ vehicles.count|pluralize }} currently parked.</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'register_vehicle' %}" class="btn btn-primary">🚗 Register New</a>
+    <a href="{% url 'signout_vehicle' %}" class="btn btn-success">🚪 Sign Out</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if vehicles %}
+    <table>
+      <thead>
+        <tr>
+          <th>Number Plate</th>
+          <th>Driver</th>
+          <th>Phone</th>
+          <th>Vehicle</th>
+          <th>Type</th>
+          <th>Arrival</th>
+          <th>Duration</th>
+          <th>Est. Fee</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr>
+          <td><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--gold);">{{ v.number_plate }}</span></td>
+          <td class="td-primary">{{ v.driver_name }}</td>
+          <td style="font-size:0.82rem;">{{ v.phone_number }}</td>
+          <td style="font-size:0.82rem;">{{ v.vehicle_model }} <span style="color:var(--text-muted);">— {{ v.vehicle_color }}</span></td>
+          <td><span class="badge badge-sky">{{ v.get_vehicle_type_display }}</span></td>
+          <td>{{ v.arrival_time|date:"d/m/Y H:i" }}</td>
+          <td class="duration-cell" data-arrival="{{ v.arrival_time.isoformat }}"></td>
+          <td style="color:var(--gold);font-weight:600;">UGX {{ v.parking_fee|floatformat:0 }}</td>
+          <td>
+            <a href="{% url 'process_signout' v.receipt.pk %}" class="btn btn-success btn-sm">Sign Out</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <span class="icon">🚗</span>
+      <p>No vehicles currently parked. Register a new vehicle to get started.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live duration timer
+function updateDurations() {
+  document.querySelectorAll('.duration-cell').forEach(cell => {
+    const arrival = new Date(cell.dataset.arrival);
+    const now = new Date();
+    const diff = Math.floor((now - arrival) / 1000);
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    cell.textContent = h + 'h ' + m + 'm';
+    cell.style.color = h < 3 ? 'var(--emerald)' : h < 8 ? 'var(--gold)' : 'var(--rose)';
+  });
+}
+updateDurations();
+setInterval(updateDurations, 60000);
+</script>
+{% endblock %}

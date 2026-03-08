@@ -1,0 +1,59 @@
+{% extends 'core/base.html' %}
+{% block title %}Sign Out Vehicle{% endblock %}
+{% block page_title %}Sign Out Vehicle{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🚪 Vehicle Sign-Out</h1>
+    <p class="page-subtitle">Search by receipt number or number plate to sign out a vehicle.</p>
+  </div>
+</div>
+
+<!-- Search -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-body">
+    <form method="get" class="search-box">
+      <input type="text" name="q" class="form-control" placeholder="Enter receipt number (e.g. PKE-20240101-ABC123) or number plate (e.g. UAX12)"
+             value="{{ query }}" style="max-width:500px;">
+      <button type="submit" class="btn btn-primary">🔍 Search</button>
+    </form>
+    {% if query and not vehicle %}
+    <div class="alert alert-error">No active vehicle found for "{{ query }}". Check the receipt number or plate and try again.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% if vehicle and receipt %}
+<!-- Vehicle Found -->
+<div class="vehicle-info-card" style="max-width:700px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div class="vehicle-plate">{{ vehicle.number_plate }}</div>
+      <div class="vehicle-meta">{{ vehicle.vehicle_model }} · {{ vehicle.vehicle_color }} · {{ vehicle.get_vehicle_type_display }}</div>
+    </div>
+    <span class="badge badge-active badge-dot">Active</span>
+  </div>
+  <div class="info-grid">
+    <div class="info-item"><div class="label">Driver</div><div class="value">{{ vehicle.driver_name }}</div></div>
+    <div class="info-item"><div class="label">Phone</div><div class="value">{{ vehicle.phone_number }}</div></div>
+    <div class="info-item"><div class="label">Arrival</div><div class="value">{{ vehicle.arrival_time|date:"d/m/Y H:i" }}</div></div>
+    <div class="info-item"><div class="label">Receipt No.</div><div class="value" style="color:var(--emerald);">{{ receipt.receipt_number }}</div></div>
+  </div>
+</div>
+
+<div style="max-width:700px;">
+  <div class="fee-box">
+    <div>
+      <div class="fee-box-label">Parking Fee</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);">{{ vehicle.get_vehicle_type_display }} · {{ vehicle.parking_rate_type|title }} rate</div>
+    </div>
+    <div class="fee-box-amount">UGX {{ vehicle.parking_fee|floatformat:0 }}</div>
+  </div>
+
+  <a href="{% url 'process_signout' receipt.pk %}" class="btn btn-success btn-lg">
+    ✅ Proceed to Sign-Out Form
+  </a>
+</div>
+{% endif %}
+{% endblock %}

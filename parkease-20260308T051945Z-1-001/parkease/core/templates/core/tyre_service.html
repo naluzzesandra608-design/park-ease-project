@@ -1,0 +1,145 @@
+{% extends 'core/base.html' %}
+{% block title %}New Tyre Service{% endblock %}
+{% block page_title %}New Tyre Service{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">🔧 Record Tyre Service</h1>
+</div>
+
+<!-- Price Reference -->
+{% if prices %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><span class="card-title">📋 Tyre Price Reference</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Brand</th><th>Size</th><th>Price (UGX)</th></tr></thead>
+      <tbody>
+        {% for p in prices %}
+        <tr>
+          <td class="td-primary">{{ p.brand }}</td>
+          <td>{{ p.size }}</td>
+          <td style="color:var(--gold);font-weight:600;">{{ p.price|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Standard Service Rates -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><span class="card-title">⚙️ Standard Service Rates</span></div>
+  <div class="card-body" style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="background:var(--surface-2);border:1px solid var(--border-light);border-radius:8px;padding:14px 20px;text-align:center;">
+      <div style="font-size:1.2rem;margin-bottom:4px;">💨</div>
+      <div style="font-weight:600;color:var(--text-primary);">Pressure Check</div>
+      <div style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:700;">UGX 500</div>
+    </div>
+    <div style="background:var(--surface-2);border:1px solid var(--border-light);border-radius:8px;padding:14px 20px;text-align:center;">
+      <div style="font-size:1.2rem;margin-bottom:4px;">🔩</div>
+      <div style="font-weight:600;color:var(--text-primary);">Puncture Fixing</div>
+      <div style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:700;">UGX 5,000</div>
+    </div>
+    <div style="background:var(--surface-2);border:1px solid var(--border-light);border-radius:8px;padding:14px 20px;text-align:center;">
+      <div style="font-size:1.2rem;margin-bottom:4px;">🔧</div>
+      <div style="font-weight:600;color:var(--text-primary);">Valve Replacement</div>
+      <div style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:700;">UGX 5,000</div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="max-width:700px;">
+  <div class="card-header"><span class="card-title">Service Form</span></div>
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Vehicle Plate <span class="required">*</span></label>
+          <input type="text" name="vehicle_plate" class="form-control" placeholder="e.g. UAX12"
+                 value="{{ form.vehicle_plate.value|default:'' }}" style="text-transform:uppercase;">
+          {% if form.vehicle_plate.errors %}<div class="form-error">{{ form.vehicle_plate.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Driver Name <span class="required">*</span></label>
+          <input type="text" name="driver_name" class="form-control" placeholder="Full name"
+                 value="{{ form.driver_name.value|default:'' }}">
+          {% if form.driver_name.errors %}<div class="form-error">{{ form.driver_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" placeholder="0712345678"
+                 value="{{ form.phone.value|default:'' }}">
+          {% if form.phone.errors %}<div class="form-error">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Type <span class="required">*</span></label>
+          <select name="service_type" class="form-select" id="service-type">
+            <option value="">-- Select --</option>
+            <option value="pressure" {% if form.service_type.value == 'pressure' %}selected{% endif %}>Pressure Check</option>
+            <option value="puncture" {% if form.service_type.value == 'puncture' %}selected{% endif %}>Puncture Fixing</option>
+            <option value="valve" {% if form.service_type.value == 'valve' %}selected{% endif %}>Valve Replacement</option>
+            <option value="new_tyre" {% if form.service_type.value == 'new_tyre' %}selected{% endif %}>New Tyre Sale</option>
+          </select>
+          {% if form.service_type.errors %}<div class="form-error">{{ form.service_type.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group" id="tyre-fields" style="display:none;">
+          <label class="form-label">Tyre Size</label>
+          <input type="text" name="tyre_size" class="form-control" placeholder="e.g. 185/65R15"
+                 value="{{ form.tyre_size.value|default:'' }}">
+        </div>
+        <div class="form-group" id="brand-field" style="display:none;">
+          <label class="form-label">Tyre Brand</label>
+          <input type="text" name="tyre_brand" class="form-control" placeholder="e.g. Bridgestone"
+                 value="{{ form.tyre_brand.value|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity <span class="required">*</span></label>
+          <input type="number" name="quantity" class="form-control" placeholder="1" min="1"
+                 value="{{ form.quantity.value|default:'1' }}">
+          {% if form.quantity.errors %}<div class="form-error">{{ form.quantity.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (UGX) <span class="required">*</span></label>
+          <input type="number" name="amount" class="form-control" placeholder="0" id="amount-field"
+                 value="{{ form.amount.value|default:'' }}">
+          {% if form.amount.errors %}<div class="form-error">{{ form.amount.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Notes</label>
+          <input type="text" name="notes" class="form-control" placeholder="Optional notes"
+                 value="{{ form.notes.value|default:'' }}">
+        </div>
+      </div>
+      <hr class="divider">
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary btn-lg">🔧 Record Service</button>
+        <a href="{% url 'tyre_dashboard' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SERVICE_RATES = {pressure:500, puncture:5000, valve:5000};
+const serviceType = document.getElementById('service-type');
+const tyreFields = document.getElementById('tyre-fields');
+const brandField = document.getElementById('brand-field');
+const amountField = document.getElementById('amount-field');
+const plateFld = document.querySelector('[name=vehicle_plate]');
+if (plateFld) plateFld.addEventListener('input', () => plateFld.value = plateFld.value.toUpperCase());
+
+serviceType.addEventListener('change', function() {
+  const v = this.value;
+  const isNew = v === 'new_tyre';
+  tyreFields.style.display = (v === 'new_tyre') ? 'block' : 'none';
+  brandField.style.display = (v === 'new_tyre') ? 'block' : 'none';
+  if (SERVICE_RATES[v]) amountField.value = SERVICE_RATES[v];
+  else if (!amountField.value) amountField.value = '';
+});
+</script>
+{% endblock %}

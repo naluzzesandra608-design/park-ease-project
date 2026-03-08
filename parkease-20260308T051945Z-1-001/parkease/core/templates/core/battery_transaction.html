@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+{% block title %}Battery Transaction{% endblock %}
+{% block page_title %}Battery Transaction{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">🔋 New Battery Transaction</h1>
+</div>
+
+{% if prices %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><span class="card-title">📋 Battery Price Reference</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Brand</th><th>Capacity</th><th>Type</th><th>Price</th><th>Duration</th></tr></thead>
+      <tbody>
+        {% for p in prices %}
+        <tr>
+          <td class="td-primary">{{ p.brand }}</td>
+          <td>{{ p.capacity }}</td>
+          <td><span class="badge {% if p.transaction_type == 'hire' %}badge-sky{% else %}badge-gold{% endif %}">{{ p.get_transaction_type_display }}</span></td>
+          <td style="color:var(--gold);font-weight:600;">UGX {{ p.price|floatformat:0 }}</td>
+          <td style="font-size:0.82rem;">{{ p.hire_duration|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="max-width:700px;">
+  <div class="card-header"><span class="card-title">Transaction Form</span></div>
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Customer Name <span class="required">*</span></label>
+          <input type="text" name="customer_name" class="form-control" placeholder="Full name"
+                 value="{{ form.customer_name.value|default:'' }}">
+          {% if form.customer_name.errors %}<div class="form-error">{{ form.customer_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone <span class="required">*</span></label>
+          <input type="text" name="phone" class="form-control" placeholder="0712345678"
+                 value="{{ form.phone.value|default:'' }}">
+          {% if form.phone.errors %}<div class="form-error">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle Plate</label>
+          <input type="text" name="vehicle_plate" class="form-control" placeholder="e.g. UAX12"
+                 value="{{ form.vehicle_plate.value|default:'' }}" style="text-transform:uppercase;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transaction Type <span class="required">*</span></label>
+          <select name="transaction_type" class="form-select" id="trans-type">
+            <option value="">-- Select --</option>
+            <option value="hire" {% if form.transaction_type.value == 'hire' %}selected{% endif %}>Hire</option>
+            <option value="sale" {% if form.transaction_type.value == 'sale' %}selected{% endif %}>Sale</option>
+            <option value="return" {% if form.transaction_type.value == 'return' %}selected{% endif %}>Return</option>
+          </select>
+          {% if form.transaction_type.errors %}<div class="form-error">{{ form.transaction_type.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Battery Brand <span class="required">*</span></label>
+          <input type="text" name="battery_brand" class="form-control" placeholder="e.g. Exide"
+                 value="{{ form.battery_brand.value|default:'' }}">
+          {% if form.battery_brand.errors %}<div class="form-error">{{ form.battery_brand.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Battery Capacity <span class="required">*</span></label>
+          <input type="text" name="battery_capacity" class="form-control" placeholder="e.g. 45Ah"
+                 value="{{ form.battery_capacity.value|default:'' }}">
+          {% if form.battery_capacity.errors %}<div class="form-error">{{ form.battery_capacity.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input type="number" name="quantity" class="form-control" placeholder="1" min="1"
+                 value="{{ form.quantity.value|default:'1' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (UGX) <span class="required">*</span></label>
+          <input type="number" name="amount" class="form-control" placeholder="0"
+                 value="{{ form.amount.value|default:'' }}">
+          {% if form.amount.errors %}<div class="form-error">{{ form.amount.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group hire-only" style="display:none;">
+          <label class="form-label">Hire Start Date</label>
+          <input type="date" name="hire_start" class="form-control" value="{{ form.hire_start.value|default:'' }}">
+        </div>
+        <div class="form-group hire-only" style="display:none;">
+          <label class="form-label">Hire End Date</label>
+          <input type="date" name="hire_end" class="form-control" value="{{ form.hire_end.value|default:'' }}">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Notes</label>
+          <input type="text" name="notes" class="form-control" placeholder="Optional" value="{{ form.notes.value|default:'' }}">
+        </div>
+      </div>
+      <hr class="divider">
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary btn-lg">🔋 Record Transaction</button>
+        <a href="{% url 'battery_dashboard' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const transType = document.getElementById('trans-type');
+transType.addEventListener('change', function() {
+  document.querySelectorAll('.hire-only').forEach(el => {
+    el.style.display = this.value === 'hire' ? 'block' : 'none';
+  });
+});
+const plateFld = document.querySelector('[name=vehicle_plate]');
+if (plateFld) plateFld.addEventListener('input', () => plateFld.value = plateFld.value.toUpperCase());
+</script>
+{% endblock %}

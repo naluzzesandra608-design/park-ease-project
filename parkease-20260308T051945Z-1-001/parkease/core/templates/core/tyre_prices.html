@@ -1,0 +1,57 @@
+{% extends 'core/base.html' %}
+{% block title %}Tyre Prices{% endblock %}
+{% block page_title %}Tyre Prices{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">💰 Manage Tyre Prices</h1>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Price List</span></div>
+    <div class="table-wrap">
+      {% if prices %}
+      <table>
+        <thead><tr><th>Brand</th><th>Size</th><th>Price</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for p in prices %}
+          <tr>
+            <td class="td-primary">{{ p.brand }}</td>
+            <td>{{ p.size }}</td>
+            <td style="color:var(--gold);font-weight:600;">UGX {{ p.price|floatformat:0 }}</td>
+            <td style="font-size:0.78rem;">{{ p.updated_at|date:"d/m/Y" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><span class="icon">💰</span><p>No prices set yet.</p></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Add New Price</span></div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Tyre Size</label>
+          <input type="text" name="size" class="form-control" placeholder="e.g. 185/65R15" value="{{ form.size.value|default:'' }}">
+          {% if form.size.errors %}<div class="form-error">{{ form.size.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Brand</label>
+          <input type="text" name="brand" class="form-control" placeholder="e.g. Bridgestone" value="{{ form.brand.value|default:'' }}">
+          {% if form.brand.errors %}<div class="form-error">{{ form.brand.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label class="form-label">Price (UGX)</label>
+          <input type="number" name="price" class="form-control" placeholder="e.g. 150000" value="{{ form.price.value|default:'' }}">
+          {% if form.price.errors %}<div class="form-error">{{ form.price.errors.0 }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">➕ Add Price</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

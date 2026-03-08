@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+{% block title %}Complete Sign-Out{% endblock %}
+{% block page_title %}Complete Sign-Out{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">✅ Complete Vehicle Sign-Out</h1>
+    <p class="page-subtitle">Enter receiver details to complete the sign-out process.</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;max-width:900px;">
+  <!-- Form -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Receiver Information</span>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Receiver Name <span class="required">*</span></label>
+            <input type="text" name="receiver_name" class="form-control" placeholder="Full name"
+                   value="{{ form.receiver_name.value|default:'' }}">
+            {% if form.receiver_name.errors %}<div class="form-error">{{ form.receiver_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number <span class="required">*</span></label>
+            <input type="text" name="receiver_phone" class="form-control" placeholder="e.g. 0712345678"
+                   value="{{ form.receiver_phone.value|default:'' }}">
+            {% if form.receiver_phone.errors %}<div class="form-error">{{ form.receiver_phone.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender <span class="required">*</span></label>
+            <select name="receiver_gender" class="form-select">
+              <option value="">-- Select --</option>
+              <option value="Male" {% if form.receiver_gender.value == 'Male' %}selected{% endif %}>Male</option>
+              <option value="Female" {% if form.receiver_gender.value == 'Female' %}selected{% endif %}>Female</option>
+              <option value="Other" {% if form.receiver_gender.value == 'Other' %}selected{% endif %}>Other</option>
+            </select>
+            {% if form.receiver_gender.errors %}<div class="form-error">{{ form.receiver_gender.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">NIN Number <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+            <input type="text" name="receiver_nin" class="form-control" placeholder="e.g. CM12345678901A"
+                   value="{{ form.receiver_nin.value|default:'' }}" style="text-transform:uppercase;">
+            {% if form.receiver_nin.errors %}<div class="form-error">{{ form.receiver_nin.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+        <hr class="divider">
+        <button type="submit" class="btn btn-success btn-lg btn-full">🚪 Complete Sign-Out & Generate Receipt</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Summary</span>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:12px;">
+          <div class="vehicle-plate" style="font-size:1.2rem;">{{ vehicle.number_plate }}</div>
+          <div class="vehicle-meta">{{ vehicle.vehicle_model }} — {{ vehicle.vehicle_color }}</div>
+        </div>
+        <div style="font-size:0.85rem;">
+          {% for key, val in summary.items %}{% endfor %}
+          <div class="receipt-row"><span class="receipt-row-label">Driver</span><span class="receipt-row-value">{{ vehicle.driver_name }}</span></div>
+          <div class="receipt-row"><span class="receipt-row-label">Type</span><span class="receipt-row-value">{{ vehicle.get_vehicle_type_display }}</span></div>
+          <div class="receipt-row"><span class="receipt-row-label">Arrival</span><span class="receipt-row-value">{{ vehicle.arrival_time|date:"d/m/Y H:i" }}</span></div>
+          <div class="receipt-row"><span class="receipt-row-label">Receipt No.</span><span class="receipt-row-value" style="color:var(--emerald);font-size:0.78rem;">{{ receipt.receipt_number }}</span></div>
+        </div>
+        <div class="receipt-total" style="margin-top:12px;">
+          <span class="receipt-total-label">Fee</span>
+          <span class="receipt-total-amount">UGX {{ vehicle.parking_fee|floatformat:0 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

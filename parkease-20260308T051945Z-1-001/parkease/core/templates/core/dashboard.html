@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Welcome back, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+    <p class="page-subtitle">Here's what's happening at Parkville today.</p>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card sky">
+    <span class="stat-icon">🚗</span>
+    <div class="stat-value">{{ active_vehicles }}</div>
+    <div class="stat-label">Active Vehicles</div>
+  </div>
+  <div class="stat-card gold">
+    <span class="stat-icon">🅿️</span>
+    <div class="stat-value">UGX {{ parking_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Parking Revenue Today</div>
+  </div>
+  <div class="stat-card emerald">
+    <span class="stat-icon">🔧</span>
+    <div class="stat-value">UGX {{ tyre_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Tyre Revenue Today</div>
+  </div>
+  <div class="stat-card violet">
+    <span class="stat-icon">🔋</span>
+    <div class="stat-value">UGX {{ battery_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Battery Revenue Today</div>
+  </div>
+  <div class="stat-card rose">
+    <span class="stat-icon">💵</span>
+    <div class="stat-value">UGX {{ total_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Total Revenue Today</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
+  <!-- Active Vehicles -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🚗 Currently Parked</span>
+      <a href="{% url 'active_vehicles' %}" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    <div class="table-wrap">
+      {% if recent_vehicles %}
+      <table>
+        <thead>
+          <tr>
+            <th>Plate</th>
+            <th>Driver</th>
+            <th>Type</th>
+            <th>Arrival</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in recent_vehicles %}
+          <tr>
+            <td><span class="td-primary" style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:700;">{{ v.number_plate }}</span></td>
+            <td class="td-primary">{{ v.driver_name }}</td>
+            <td><span class="badge badge-sky">{{ v.get_vehicle_type_display }}</span></td>
+            <td>{{ v.arrival_time|date:"H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><span class="icon">🚗</span><p>No vehicles currently parked.</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Sign-outs -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🚪 Recent Sign-outs</span>
+    </div>
+    <div class="table-wrap">
+      {% if recent_signouts %}
+      <table>
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Plate</th>
+            <th>Fee</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent_signouts %}
+          <tr>
+            <td><span style="font-size:0.78rem;color:var(--emerald);">{{ r.receipt_number }}</span></td>
+            <td class="td-primary">{{ r.vehicle.number_plate }}</td>
+            <td style="color:var(--gold);font-weight:600;">UGX {{ r.amount_paid|floatformat:0 }}</td>
+            <td>{{ r.signed_out_at|date:"H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><span class="icon">🚪</span><p>No sign-outs today.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-top:24px;" class="card">
+  <div class="card-header">
+    <span class="card-title">⚡ Quick Actions</span>
+  </div>
+  <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+    {% with role=request.user.profile.role %}
+    {% if role == 'attendant' or role == 'admin' %}
+    <a href="{% url 'register_vehicle' %}" class="btn btn-primary">🚗 Register Vehicle</a>
+    <a href="{% url 'signout_vehicle' %}" class="btn btn-success">🚪 Sign Out Vehicle</a>
+    {% endif %}
+    {% if role == 'tyre_manager' or role == 'admin' %}
+    <a href="{% url 'tyre_service' %}" class="btn btn-secondary">🔧 New Tyre Service</a>
+    {% endif %}
+    {% if role == 'battery_manager' or role == 'admin' %}
+    <a href="{% url 'battery_transaction' %}" class="btn btn-secondary">🔋 Battery Transaction</a>
+    {% endif %}
+    {% if role == 'admin' %}
+    <a href="{% url 'daily_report' %}" class="btn btn-secondary">📊 View Report</a>
+    {% endif %}
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}

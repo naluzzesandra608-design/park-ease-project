@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% block title %}Tyre Clinic{% endblock %}
+{% block page_title %}Tyre Clinic{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🔧 Tyre Clinic Dashboard</h1>
+    <p class="page-subtitle">Manage tyre services and transactions.</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'tyre_service' %}" class="btn btn-primary">➕ New Service</a>
+    <a href="{% url 'tyre_prices' %}" class="btn btn-secondary">💰 Manage Prices</a>
+  </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+  <div class="stat-card emerald">
+    <span class="stat-icon">🔧</span>
+    <div class="stat-value">{{ transactions.count }}</div>
+    <div class="stat-label">Recent Transactions</div>
+  </div>
+  <div class="stat-card gold">
+    <span class="stat-icon">💵</span>
+    <div class="stat-value">UGX {{ today_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Revenue Today</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Recent Tyre Transactions</span>
+  </div>
+  <div class="table-wrap">
+    {% if transactions %}
+    <table>
+      <thead>
+        <tr>
+          <th>Receipt</th>
+          <th>Vehicle</th>
+          <th>Driver</th>
+          <th>Service</th>
+          <th>Size/Brand</th>
+          <th>Qty</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td style="color:var(--emerald);font-size:0.78rem;">{{ t.receipt_number }}</td>
+          <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);">{{ t.vehicle_plate }}</td>
+          <td class="td-primary">{{ t.driver_name }}</td>
+          <td><span class="badge badge-violet">{{ t.get_service_type_display }}</span></td>
+          <td style="font-size:0.82rem;">{{ t.tyre_size|default:"—" }}{% if t.tyre_brand %} / {{ t.tyre_brand }}{% endif %}</td>
+          <td>{{ t.quantity }}</td>
+          <td style="color:var(--gold);font-weight:600;">UGX {{ t.amount|floatformat:0 }}</td>
+          <td style="font-size:0.82rem;">{{ t.transaction_date|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><span class="icon">🔧</span><p>No tyre transactions yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

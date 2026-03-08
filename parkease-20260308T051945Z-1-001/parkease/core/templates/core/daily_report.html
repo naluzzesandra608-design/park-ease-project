@@ -1,0 +1,160 @@
+{% extends 'core/base.html' %}
+{% block title %}Daily Report{% endblock %}
+{% block page_title %}Daily Report{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-secondary btn-sm no-print">🖨️ Print Report</button>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">📊 Daily Revenue Report</h1>
+    <p class="page-subtitle">{{ report_date|date:"l, d F Y" }}</p>
+  </div>
+</div>
+
+<!-- Date Picker -->
+<div class="card no-print" style="margin-bottom:24px;">
+  <div class="card-body">
+    <form method="get" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <label class="form-label" style="margin:0;">Select Date:</label>
+      <input type="date" name="date" class="form-control" value="{{ report_date.isoformat }}" style="max-width:200px;">
+      <button type="submit" class="btn btn-primary">📊 Generate Report</button>
+    </form>
+  </div>
+</div>
+
+<!-- Revenue Summary -->
+<div class="revenue-grid">
+  <div class="revenue-card">
+    <div style="font-size:1.5rem;margin-bottom:8px;">🅿️</div>
+    <div class="revenue-amount" style="color:var(--gold);">UGX {{ parking_revenue|floatformat:0 }}</div>
+    <div class="revenue-label">Parking Revenue</div>
+  </div>
+  <div class="revenue-card">
+    <div style="font-size:1.5rem;margin-bottom:8px;">🔧</div>
+    <div class="revenue-amount" style="color:var(--violet);">UGX {{ tyre_revenue|floatformat:0 }}</div>
+    <div class="revenue-label">Tyre Clinic Revenue</div>
+  </div>
+  <div class="revenue-card">
+    <div style="font-size:1.5rem;margin-bottom:8px;">🔋</div>
+    <div class="revenue-amount" style="color:var(--sky);">UGX {{ battery_revenue|floatformat:0 }}</div>
+    <div class="revenue-label">Battery Section Revenue</div>
+  </div>
+</div>
+
+<!-- Total -->
+<div style="background:linear-gradient(135deg,rgba(245,200,66,0.12),rgba(245,200,66,0.05));border:1px solid rgba(245,200,66,0.25);border-radius:var(--radius);padding:24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;">
+  <div>
+    <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Total Daily Revenue</div>
+    <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:2px;">All sections combined</div>
+  </div>
+  <div style="font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;color:var(--gold);">UGX {{ total_revenue|floatformat:0 }}</div>
+</div>
+
+<!-- Vehicle Type Breakdown -->
+{% if vehicle_breakdown %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><span class="card-title">🚗 Parking — Vehicle Type Breakdown</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Vehicle Type</th><th>Count</th><th>Revenue (UGX)</th></tr></thead>
+      <tbody>
+        {% for vtype, data in vehicle_breakdown.items %}
+        <tr>
+          <td class="td-primary">{{ vtype }}</td>
+          <td>{{ data.count }}</td>
+          <td style="color:var(--gold);font-weight:600;">{{ data.revenue|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Signed-Out Vehicles -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <span class="card-title">🅿️ Signed-Out Vehicles ({{ signouts.count }})</span>
+  </div>
+  <div class="table-wrap">
+    {% if signouts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Receipt</th>
+          <th>Plate</th>
+          <th>Driver</th>
+          <th>Type</th>
+          <th>Arrival</th>
+          <th>Departure</th>
+          <th>Fee (UGX)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in signouts %}
+        <tr>
+          <td style="color:var(--emerald);font-size:0.78rem;">{{ r.receipt_number }}</td>
+          <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);">{{ r.vehicle.number_plate }}</td>
+          <td class="td-primary">{{ r.vehicle.driver_name }}</td>
+          <td><span class="badge badge-sky">{{ r.vehicle.get_vehicle_type_display }}</span></td>
+          <td style="font-size:0.82rem;">{{ r.vehicle.arrival_time|date:"H:i" }}</td>
+          <td style="font-size:0.82rem;">{{ r.signed_out_at|date:"H:i" }}</td>
+          <td style="color:var(--gold);font-weight:600;">{{ r.amount_paid|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><span class="icon">🚗</span><p>No vehicles signed out on this date.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Tyre Transactions -->
+{% if tyre_transactions %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><span class="card-title">🔧 Tyre Transactions ({{ tyre_transactions.count }})</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Receipt</th><th>Vehicle</th><th>Service</th><th>Amount (UGX)</th></tr></thead>
+      <tbody>
+        {% for t in tyre_transactions %}
+        <tr>
+          <td style="font-size:0.78rem;color:var(--violet);">{{ t.receipt_number }}</td>
+          <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);">{{ t.vehicle_plate }}</td>
+          <td><span class="badge badge-violet">{{ t.get_service_type_display }}</span></td>
+          <td style="color:var(--gold);font-weight:600;">{{ t.amount|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Battery Transactions -->
+{% if battery_transactions %}
+<div class="card">
+  <div class="card-header"><span class="card-title">🔋 Battery Transactions ({{ battery_transactions.count }})</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Receipt</th><th>Customer</th><th>Type</th><th>Battery</th><th>Amount (UGX)</th></tr></thead>
+      <tbody>
+        {% for t in battery_transactions %}
+        <tr>
+          <td style="font-size:0.78rem;color:var(--violet);">{{ t.receipt_number }}</td>
+          <td class="td-primary">{{ t.customer_name }}</td>
+          <td><span class="badge {% if t.transaction_type == 'hire' %}badge-sky{% else %}badge-gold{% endif %}">{{ t.get_transaction_type_display }}</span></td>
+          <td style="font-size:0.82rem;">{{ t.battery_brand }} {{ t.battery_capacity }}</td>
+          <td style="color:var(--gold);font-weight:600;">{{ t.amount|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

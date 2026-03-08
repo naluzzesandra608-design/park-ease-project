@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — ParkEase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-bg"></div>
+  <div class="login-grid-bg"></div>
+
+  <div class="login-card fade-in">
+    <div class="login-logo">
+      <div class="logo-icon" style="width:56px;height:56px;font-size:28px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:linear-gradient(135deg,#f5c842,#e8a800);margin:0 auto 16px;box-shadow:0 0 32px rgba(245,200,66,0.3);">🅿️</div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;">ParkEase</h1>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Parkville Management System</p>
+    </div>
+
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}error{% else %}info{% endif %}">{{ message }}</div>
+    {% endfor %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" placeholder="Enter your username" autocomplete="username" value="{{ form.username.value|default:'' }}">
+        {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group" style="margin-bottom:24px;">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+        {% if form.password.errors %}<div class="form-error">{{ form.password.errors.0 }}</div>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">🔑 Sign In</button>
+    </form>
+
+    <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:24px;">
+      ParkEase v1.0 &nbsp;·&nbsp; Parkville, Kampala
+    </p>
+  </div>
+</div>
+</body>
+</html>

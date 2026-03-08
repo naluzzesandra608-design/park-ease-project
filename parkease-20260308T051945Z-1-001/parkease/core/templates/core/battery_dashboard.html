@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% block title %}Battery Section{% endblock %}
+{% block page_title %}Battery Section{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🔋 Battery Section Dashboard</h1>
+    <p class="page-subtitle">Manage battery hire and sales transactions.</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'battery_transaction' %}" class="btn btn-primary">➕ New Transaction</a>
+    <a href="{% url 'battery_prices' %}" class="btn btn-secondary">💰 Manage Prices</a>
+  </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+  <div class="stat-card violet">
+    <span class="stat-icon">🔋</span>
+    <div class="stat-value">{{ transactions.count }}</div>
+    <div class="stat-label">Recent Transactions</div>
+  </div>
+  <div class="stat-card gold">
+    <span class="stat-icon">💵</span>
+    <div class="stat-value">UGX {{ today_revenue|floatformat:0 }}</div>
+    <div class="stat-label">Revenue Today</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">Recent Battery Transactions</span></div>
+  <div class="table-wrap">
+    {% if transactions %}
+    <table>
+      <thead>
+        <tr>
+          <th>Receipt</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Battery</th>
+          <th>Qty</th>
+          <th>Amount</th>
+          <th>Hire Period</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td style="color:var(--violet);font-size:0.78rem;">{{ t.receipt_number }}</td>
+          <td class="td-primary">{{ t.customer_name }}</td>
+          <td>
+            {% if t.transaction_type == 'hire' %}<span class="badge badge-sky">Hire</span>
+            {% elif t.transaction_type == 'sale' %}<span class="badge badge-gold">Sale</span>
+            {% else %}<span class="badge badge-emerald">Return</span>{% endif %}
+          </td>
+          <td style="font-size:0.82rem;">{{ t.battery_brand }} {{ t.battery_capacity }}</td>
+          <td>{{ t.quantity }}</td>
+          <td style="color:var(--gold);font-weight:600;">UGX {{ t.amount|floatformat:0 }}</td>
+          <td style="font-size:0.78rem;">
+            {% if t.hire_start %}{{ t.hire_start|date:"d/m" }} — {{ t.hire_end|date:"d/m" }}{% else %}—{% endif %}
+          </td>
+          <td style="font-size:0.82rem;">{{ t.transaction_date|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><span class="icon">🔋</span><p>No battery transactions yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

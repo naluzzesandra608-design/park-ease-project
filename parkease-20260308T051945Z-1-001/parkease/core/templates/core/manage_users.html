@@ -1,0 +1,64 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">👥 User Management</h1>
+    <p class="page-subtitle">{{ users.count }} user{{ users.count|pluralize }} in the system.</p>
+  </div>
+  <a href="{% url 'create_user' %}" class="btn btn-primary">➕ Create User</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td class="td-primary" style="font-family:'Syne',sans-serif;">{{ user.username }}</td>
+          <td>{{ user.get_full_name|default:"—" }}</td>
+          <td style="font-size:0.82rem;">{{ user.email|default:"—" }}</td>
+          <td>
+            {% with role=user.profile.role %}
+            {% if role == 'admin' %}<span class="badge badge-gold">Admin</span>
+            {% elif role == 'attendant' %}<span class="badge badge-sky">Attendant</span>
+            {% elif role == 'tyre_manager' %}<span class="badge badge-violet">Tyre Manager</span>
+            {% elif role == 'battery_manager' %}<span class="badge badge-emerald">Battery Manager</span>
+            {% else %}<span class="badge badge-inactive">Unknown</span>{% endif %}
+            {% endwith %}
+          </td>
+          <td style="font-size:0.82rem;">{{ user.profile.phone|default:"—" }}</td>
+          <td>
+            {% if user.is_active %}<span class="badge badge-active badge-dot">Active</span>
+            {% else %}<span class="badge badge-inactive">Inactive</span>{% endif %}
+          </td>
+          <td>
+            {% if user != request.user %}
+            <form method="post" action="{% url 'delete_user' user.pk %}" style="display:inline;" onsubmit="return confirm('Delete user {{ user.username }}?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
+            </form>
+            {% else %}
+            <span style="font-size:0.75rem;color:var(--text-muted);">Current user</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
